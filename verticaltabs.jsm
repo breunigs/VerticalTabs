@@ -91,7 +91,7 @@ VerticalTabs.prototype = {
         });
 
         this.window.addEventListener("sizemodechange", this, false);
-        this.unloaders.push(function unloadWindowResizeListener() {
+        this.unloaders.push(function unloadSizeModeChangeListener() {
             this.window.removeEventListener("sizemodechange", this, false);
         });
     },
@@ -287,7 +287,7 @@ VerticalTabs.prototype = {
       }
       if (data == "extensions.verticaltabs.hideInFullscreen") {
         // call manually, so we re-show tabs when in fullscreen
-        this.onWindowResize();
+        this.onSizeModeChange();
       }
     },
 
