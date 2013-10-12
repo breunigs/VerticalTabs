@@ -360,14 +360,14 @@ VerticalTabs.prototype = {
 
 /**
  * Patches for the tabbrowser-tabs object.
- *
+ * 
  * These are necessary where the original implementation assumes a
  * horizontal layout. Pretty much only needed for drag'n'drop to work
  * correctly.
- *
+ * 
  * WARNING: Do not continue reading unless you want to feel sick. You
  * have been warned.
- *
+ * 
  */
 function VTTabbrowserTabs(tabs) {
     this.tabs = tabs;
