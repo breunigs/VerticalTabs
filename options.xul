@@ -3,4 +3,7 @@
   <setting type="bool"
            pref="extensions.verticaltabs.right"
            title="Display tabs on the right"/>
+  <setting type="bool"
+           pref="extensions.verticaltabs.hideInFullscreen"
+           title="Hide tabs when in fullscreen"/>
 </vbox>

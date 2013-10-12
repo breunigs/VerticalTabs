@@ -78,7 +78,7 @@ VerticalTabs.prototype = {
 
         this.rearrangeXUL();
         this.initContextMenu();
-        this.observeRightPref();
+        this.observePrefs();
 
         let tabs = this.document.getElementById("tabbrowser-tabs");
         this.vtTabs = new VTTabbrowserTabs(tabs);
@@ -88,6 +88,11 @@ VerticalTabs.prototype = {
             this.vtTabs.unload();
             this.tabIDs.unload();
             this.multiSelect.unload();
+        });
+
+        this.window.addEventListener("sizemodechange", this, false);
+        this.unloaders.push(function unloadWindowResizeListener() {
+            this.window.removeEventListener("sizemodechange", this, false);
         });
     },
 
@@ -259,24 +264,30 @@ VerticalTabs.prototype = {
             Services.prefs.setIntPref("extensions.verticaltabs.width",
                                       tabs.boxObject.width);
         }, 10);
-	},
+    },
 
-    observeRightPref: function observeRightPref() {
-      Services.prefs.addObserver("extensions.verticaltabs.right", this, false);
-      this.unloaders.push(function unloadRightPref() {
-        Services.prefs.removeObserver("extensions.verticaltabs.right", this, false);
+    observePrefs: function observePrefs() {
+      Services.prefs.addObserver("extensions.verticaltabs.", this, false);
+      this.unloaders.push(function unloadObservePrefs() {
+        Services.prefs.removeObserver("extensions.verticaltabs.", this, false);
       });
     },
 
     observe: function observe(subject, topic, data) {
-      if (topic != "nsPref:changed" || data != "extensions.verticaltabs.right") {
+      if (topic != "nsPref:changed") {
         return;
       }
-      let browserbox = this.document.getElementById("browser");
-      if (browserbox.dir != "reverse") {
-        browserbox.dir = "reverse";
-      } else {
-        browserbox.dir = "normal";
+      if (data == "extensions.verticaltabs.right") {
+        let browserbox = this.document.getElementById("browser");
+        if (browserbox.dir != "reverse") {
+          browserbox.dir = "reverse";
+        } else {
+          browserbox.dir = "normal";
+        }
+      }
+      if (data == "extensions.verticaltabs.hideInFullscreen") {
+        // call manually, so we re-show tabs when in fullscreen
+        this.onWindowResize();
       }
     },
 
@@ -299,10 +310,30 @@ VerticalTabs.prototype = {
         case "mouseup":
             this.onMouseUp(aEvent);
             return;
+        case "sizemodechange":
+            this.onSizeModeChange(aEvent);
+            return;
         case "popupshowing":
             this.onPopupShowing(aEvent);
             return;
         }
+    },
+
+    onSizeModeChange: function() {
+        const window = this.window;
+        const document = this.document;
+
+        let hideOk = Services.prefs.getBoolPref("extensions.verticaltabs.hideInFullscreen");
+        let display = hideOk && window.fullScreen ? "none" : "";
+
+        let tabs = document.getElementById("verticaltabs-box").style;
+        let splitter = document.getElementById("verticaltabs-splitter").style;
+
+        if (tabs.display == display && splitter.display == display) {
+          return;
+        }
+
+        tabs.display = splitter.display = display;
     },
 
     onTabOpen: function onTabOpen(aEvent) {
@@ -329,14 +360,14 @@ VerticalTabs.prototype = {
 
 /**
  * Patches for the tabbrowser-tabs object.
- * 
+ *
  * These are necessary where the original implementation assumes a
  * horizontal layout. Pretty much only needed for drag'n'drop to work
  * correctly.
- * 
+ *
  * WARNING: Do not continue reading unless you want to feel sick. You
  * have been warned.
- * 
+ *
  */
 function VTTabbrowserTabs(tabs) {
     this.tabs = tabs;
