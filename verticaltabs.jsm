@@ -324,7 +324,7 @@ VerticalTabs.prototype = {
         const document = this.document;
 
         let hideOk = Services.prefs.getBoolPref("extensions.verticaltabs.hideInFullscreen");
-        let display = hideOk && window.fullScreen ? "none" : "";
+        let display = hideOk && window.windowState == window.STATE_FULLSCREEN ? "none" : "";
 
         let tabs = document.getElementById("verticaltabs-box").style;
         let splitter = document.getElementById("verticaltabs-splitter").style;
